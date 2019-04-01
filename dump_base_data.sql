@@ -1,14 +1,27 @@
-CREATE TABLE ParameterType
-(
-    ParameterTypeID tinyint(4) PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    ParameterTypeName varchar(32),
-    ParameterTypeTag varchar(16),
-    ParameterTypeFormat varchar(25),
-    ParameterTypeMin int(11),
-    ParameterTypeMax int(11),
-    ParameterTypePatternRegex varchar(512)
-);
-CREATE INDEX ParameterTypeID ON ParameterType (ParameterTypeID);
+## AuthType
+INSERT INTO AuthType (AuthTypeID, AuthTypeName) VALUES (0, 'None');
+INSERT INTO AuthType (AuthTypeID, AuthTypeName) VALUES (1, 'Basic');
+INSERT INTO AuthType (AuthTypeID, AuthTypeName) VALUES (2, 'Editor');
+INSERT INTO AuthType (AuthTypeID, AuthTypeName) VALUES (3, 'Admin');
+
+
+## MethodType
+INSERT INTO MethodType (MethodTypeID, MethodTypeName) VALUES (1, 'get');
+INSERT INTO MethodType (MethodTypeID, MethodTypeName) VALUES (2, 'post');
+
+## MethodParameterPlace
+INSERT INTO MethodParameterPlace (MethodParameterPlaceName) VALUES ('Url');
+INSERT INTO MethodParameterPlace (MethodParameterPlaceName) VALUES ('Resquest');
+INSERT INTO MethodParameterPlace (MethodParameterPlaceName) VALUES ('Response');
+INSERT INTO MethodParameterPlace (MethodParameterPlaceName) VALUES ('RequestBody');
+INSERT INTO MethodParameterPlace (MethodParameterPlaceName) VALUES ('ResponseBody');
+
+## ParameterPermissionType
+INSERT INTO ParameterPermissionType (ParameterPermissionTypeName) VALUES ('None');
+INSERT INTO ParameterPermissionType (ParameterPermissionTypeName) VALUES ('Account');
+INSERT INTO ParameterPermissionType (ParameterPermissionTypeName) VALUES ('User');
+
+## ParameterType
 INSERT INTO ParameterType (ParameterTypeName, ParameterTypeTag, ParameterTypeFormat, ParameterTypeMin, ParameterTypeMax, ParameterTypePatternRegex) VALUES ('string', 'string', '', null, null, null);
 INSERT INTO ParameterType (ParameterTypeName, ParameterTypeTag, ParameterTypeFormat, ParameterTypeMin, ParameterTypeMax, ParameterTypePatternRegex) VALUES ('Integer', 'integer', null, null, null, null);
 INSERT INTO ParameterType (ParameterTypeName, ParameterTypeTag, ParameterTypeFormat, ParameterTypeMin, ParameterTypeMax, ParameterTypePatternRegex) VALUES ('DateTime', 'string', 'date-time', null, null, null);
@@ -35,3 +48,10 @@ INSERT INTO ParameterType (ParameterTypeName, ParameterTypeTag, ParameterTypeFor
 INSERT INTO ParameterType (ParameterTypeName, ParameterTypeTag, ParameterTypeFormat, ParameterTypeMin, ParameterTypeMax, ParameterTypePatternRegex) VALUES ('UUID', 'string', 'uuid', null, null, null);
 INSERT INTO ParameterType (ParameterTypeName, ParameterTypeTag, ParameterTypeFormat, ParameterTypeMin, ParameterTypeMax, ParameterTypePatternRegex) VALUES ('Status', 'integer', null, 0, 1, null);
 INSERT INTO ParameterType (ParameterTypeName, ParameterTypeTag, ParameterTypeFormat, ParameterTypeMin, ParameterTypeMax, ParameterTypePatternRegex) VALUES ('ArrayInt', 'array', null, null, null, null);
+
+## PermissionEntityType
+INSERT INTO PermissionEntityType (PermissionEntityTypeID, PermissionEntityTypeName) VALUES (0, 'None');
+INSERT INTO PermissionEntityType (PermissionEntityTypeID, PermissionEntityTypeName) VALUES (1, 'Admin');
+INSERT INTO PermissionEntityType (PermissionEntityTypeID, PermissionEntityTypeName) VALUES (2, 'Partner');
+INSERT INTO PermissionEntityType (PermissionEntityTypeID, PermissionEntityTypeName) VALUES (3, 'Account');
+INSERT INTO PermissionEntityType (PermissionEntityTypeID, PermissionEntityTypeName) VALUES (4, 'User');
