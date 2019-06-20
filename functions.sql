@@ -249,54 +249,70 @@ BEGIN
   RETURN CONCAT(Path, '/', IFNULL(PathVar, ''));
 END;
 
-create function FN_GetMethodResponse (methodID int) returns json 
+create function FN_GetMethodResponse (methodID int) returns json
 BEGIN
-  DECLARE SchemaObject json;
-  DECLARE Response json;
-  DECLARE properties json;
-  DECLARE responseBodyObjectID int;
-  SET responseBodyObjectID = 0;
-  SET responseBodyObjectID = (SELECT
-      MethodParameter.ParameterObject
-    FROM MethodParameter
-    WHERE MethodParameter.MethodID = methodID
-    AND MethodParameter.MethodParameterPlace = 5);
+    DECLARE SchemaObject json;
+    DECLARE Response json;
+    DECLARE properties json;
+    DECLARE responseBodyObjectID int;
+    DECLARE responseParameterType int;
+    SET responseBodyObjectID = 0;
+    SET responseBodyObjectID = (SELECT
+                                    MethodParameter.ParameterObject
+                                FROM MethodParameter
+                                WHERE MethodParameter.MethodID = methodID
+                                  AND MethodParameter.MethodParameterPlace = 5);
+    SET responseParameterType = (SELECT
+                                    MethodParameter.ParameterType
+                                FROM MethodParameter
+                                WHERE MethodParameter.MethodID = methodID
+                                  AND MethodParameter.MethodParameterPlace = 5);
 
-  IF (responseBodyObjectID > 0) THEN
-    SET SchemaObject = JSON_OBJECT('$ref', (SELECT
-        CONCAT('#/definitions/', Object.ObjectName)
-      FROM Object
-      WHERE Object.ObjectID = responseBodyObjectID));
-  ELSE
-    IF (EXISTS (SELECT
-          *
-        FROM MethodParameter
-        WHERE MethodParameter.MethodID = methodID
-        AND MethodParameter.MethodParameterPlace = 5)) THEN
-      SET properties = (SELECT
-          JSON_OBJECTAGG(MethodParameter.MethodParameterName, FN_GetMethodParameterInfo(MethodParameter.MethodParameterID))
-        FROM MethodParameter
-        WHERE MethodParameter.MethodID = methodID
-        AND MethodParameter.MethodParameterPlace = 3);
-
-      SET SchemaObject = JSON_OBJECT('type', 'object',
-      'properties', properties);
+    IF (responseBodyObjectID > 0) THEN
+        IF (responseParameterType = 14) THEN
+            SET SchemaObject = JSON_OBJECT('type', 'array',
+                                            'items', JSON_OBJECT('$ref', (SELECT
+                                                                CONCAT('#/definitions/', Object.ObjectName)
+                                                                FROM Object
+                                                                WHERE Object.ObjectID = responseBodyObjectID)
+                                                )
+                );
+        ELSE
+            SET SchemaObject = JSON_OBJECT('$ref', (SELECT
+                                                        CONCAT('#/definitions/', Object.ObjectName)
+                                                    FROM Object
+                                                    WHERE Object.ObjectID = responseBodyObjectID));
+        END IF;
     ELSE
-      SET SchemaObject = JSON_OBJECT('$ref', '#/definitions/Response');
-    END IF;
-  END IF;
+        IF (EXISTS (SELECT
+                        *
+                    FROM MethodParameter
+                    WHERE MethodParameter.MethodID = methodID
+                      AND MethodParameter.MethodParameterPlace = 5)) THEN
+            SET properties = (SELECT
+                                  JSON_OBJECTAGG(MethodParameter.MethodParameterName, FN_GetMethodParameterInfo(MethodParameter.MethodParameterID))
+                              FROM MethodParameter
+                              WHERE MethodParameter.MethodID = methodID
+                                AND MethodParameter.MethodParameterPlace = 3);
 
-  SET Response = JSON_OBJECT(
-  '200', JSON_OBJECT(
-  'description', 'Status 200',
-  'schema', SchemaObject
-  ),
-  '400', JSON_OBJECT(
-  'description', 'Error Response',
-  'schema', JSON_OBJECT('$ref', '#/definitions/Error')
-  )
-  );
-  RETURN Response;
+            SET SchemaObject = JSON_OBJECT('type', 'object',
+                                           'properties', properties);
+        ELSE
+            SET SchemaObject = JSON_OBJECT('$ref', '#/definitions/Response');
+        END IF;
+    END IF;
+
+    SET Response = JSON_OBJECT(
+            '200', JSON_OBJECT(
+                    'description', 'Status 200',
+                    'schema', SchemaObject
+                ),
+            '400', JSON_OBJECT(
+                    'description', 'Error Response',
+                    'schema', JSON_OBJECT('$ref', '#/definitions/Error')
+                )
+        );
+    RETURN Response;
 END;
 
 create function FN_GetObjectParamaterInfo (objectParameterID int) returns json 
