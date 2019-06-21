@@ -564,24 +564,34 @@ BEGIN
 
 END;
 
-create function FN_GetSwaggerPaths (Version varchar(8)) returns json 
+create function FN_CheckMethodParameters (data json) returns json
+begin
+    if (JSON_LENGTH(data, '$.parameters') = 0) then
+        set data = JSON_REMOVE(data, '$.parameters');
+    end if;
+
+    return data;
+
+end;
+
+create function FN_GetSwaggerPaths (Version varchar(8)) returns json
 BEGIN
-  DECLARE Response json;
+    DECLARE Response json;
 
-  SET Response = (SELECT
-      JSON_OBJECTAGG(FN_GetMethodPath(Method.MethodID), JSON_OBJECT(MethodType.MethodTypeName, JSON_OBJECT(
-      'parameters', FN_GetSwaggerMethodsProperties(Method.MethodID),
-      'x-AuthType', FN_GetMethodAuthType(Method.MethodID),
-      'operationId', CONCAT(Service.ServiceName, Method.MethodName),
-      'tags', JSON_ARRAY(Service.ServiceName),
-      'responses', FN_GetMethodResponse(Method.MethodID)
-      )))
-    FROM Method
-      INNER JOIN Service
-        ON Method.ServiceID = Service.ServiceID 
-      INNER JOIN MethodType ON Method.MethodType =MethodType.MethodTypeID);
+    SET Response = (SELECT
+                        JSON_OBJECTAGG(FN_GetMethodPath(Method.MethodID), JSON_OBJECT(MethodType.MethodTypeName, FN_CheckMethodParameters(JSON_OBJECT(
+                                'parameters', FN_GetSwaggerMethodsProperties(Method.MethodID),
+                                'x-AuthType', FN_GetMethodAuthType(Method.MethodID),
+                                'operationId', CONCAT(Service.ServiceName, Method.MethodName),
+                                'tags', JSON_ARRAY(Service.ServiceName),
+                                'responses', FN_GetMethodResponse(Method.MethodID)
+                            ))))
+                    FROM Method
+                             INNER JOIN Service
+                                        ON Method.ServiceID = Service.ServiceID
+                             INNER JOIN MethodType ON Method.MethodType =MethodType.MethodTypeID);
 
-  RETURN Response;
+    RETURN Response;
 
 
 END;
