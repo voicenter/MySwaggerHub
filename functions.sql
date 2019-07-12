@@ -516,29 +516,33 @@ BEGIN
 
 END;
 
-create function FN_GetSwaggerObjects (Version varchar(8)) returns json 
-BEGIN
-  DECLARE Response json;
-
-  SET Response = (SELECT
-      JSON_OBJECTAGG(Object.ObjectName, JSON_OBJECT(
-      'type', 'object',
-      'required', IFNULL((SELECT
-          JSON_ARRAYAGG(ObjectParameter.ObjectParameterName)
-        FROM ObjectParameter
-        WHERE ObjectParameter.ParameterObject = Object.ObjectID
-        AND ObjectParameter.Required = TRUE
-        ORDER BY ObjectParameter.ObjectParameterOrder), JSON_ARRAY()),
-      'properties', FN_GetSwaggerObjectsProperties(Object.ObjectID)
-      ))
-    FROM Object);
-
-  /*    IF (json_length(Response, '$.required') = 0)
-      THEN
+create function FN_CheckRequiredObjectParams(ObjectID int)
+    returns json
+begin
+    declare Response json;
+    set Response =  JSON_OBJECT(
+            'type', 'object',
+            'required', ifnull((SELECT JSON_ARRAYAGG(ObjectParameter.ObjectParameterName)
+                                FROM ObjectParameter
+                                WHERE ObjectParameter.ParameterObject = ObjectID AND ObjectParameter.Required = TRUE
+                                ORDER BY ObjectParameter.ObjectParameterOrder), json_array()),
+            'properties', FN_GetSwaggerObjectsProperties(ObjectID)
+        );
+    IF (json_length(Response, '$.required') = 0)
+    THEN
         SET Response = JSON_REMOVE(Response, '$.required');
-      END IF;*/
-  RETURN Response;
+    END IF;
 
+    return Response;
+end;
+
+create function FN_GetSwaggerObjects(Version varchar(8)) returns json
+BEGIN
+    DECLARE Response JSON;
+
+    SET Response = (SELECT JSON_OBJECTAGG(Object.ObjectName, FN_CheckRequiredObjectParams(Object.ObjectID))
+                    FROM Object);
+    RETURN Response;
 
 END;
 
