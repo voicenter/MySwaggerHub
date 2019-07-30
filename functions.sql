@@ -394,6 +394,7 @@ BEGIN
 
   IF (parameterTypeID = 13
     OR parameterTypeID = 27
+    OR parameterTypeID = 30
     OR parameterTypeID = 14) THEN
 
     SET parameterSubObjectName = (SELECT
@@ -404,12 +405,16 @@ BEGIN
       WHERE ObjectParameter.ObjectParameterID = objectParameterID);
     IF (parameterTypeID = 13) THEN
       SET Response = JSON_OBJECT('$ref', CONCAT('#/definitions/', parameterSubObjectName));
+      IF(isnull(parameterSubObjectName)) THEN
+                SET Response = JSON_OBJECT('type', 'object', 'additionalProperties', true);
+      END IF;
     ELSEIF (parameterTypeID = 14) THEN
       SET Response = JSON_OBJECT('type', 'array', 'items', JSON_OBJECT('$ref', CONCAT('#/definitions/', parameterSubObjectName)));
 
    ELSEIF (parameterTypeID = 27) THEN
       SET Response = JSON_OBJECT('type', 'array', 'items', JSON_OBJECT('type', 'integer'));
-
+    ELSEIF (parameterTypeID = 30) THEN
+      SET Response = JSON_OBJECT('type', 'object', 'additionalProperties', true);
     END IF;
 
     RETURN Response;
